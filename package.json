@@ -1,0 +1,35 @@
+{
+	"name": "wattpad-to-pdf",
+	"version": "1.0.0",
+	"description": "a simple software to convert wattpad stories to pdf",
+	"exports": "./index.js",
+	"type": "module",
+	"node": ">=16",
+	"scripts": {
+		"start": "node --loader=./loader.js index",
+		"api": "nodemon --loader=./loader.js index --ignore client/**",
+		"client": "cd client && npm run dev",
+		"server-install": "npm install",
+		"client-install": "cd client && npm install",
+		"install-all": "concurrently \"npm run server-install\" \"npm run client-install\"",
+		"dev": "concurrently \"npm run api\" \"npm run client\""
+	},
+	"keywords": [
+		"wattpad",
+		"pdf"
+	],
+	"author": "Jelly",
+	"license": "ISC",
+	"dependencies": {
+		"axios": "^1.5.1",
+		"cheerio": "^1.0.0-rc.12",
+		"concurrently": "^8.2.1",
+		"cors": "^2.8.5",
+		"express": "^4.18.2",
+		"morgan": "^1.10.0",
+		"resolve": "^1.22.6"
+	},
+	"devDependencies": {
+		"nodemon": "^3.0.1"
+	}
+}
