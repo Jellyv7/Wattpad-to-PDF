@@ -1,14 +1,18 @@
 import React, { useContext } from 'react';
-import { LogsContext } from '../context'
+import { AppContext } from '../context'
 
 const Logs = () => {
-	const { logs: logsTools } = useContext(LogsContext)
+	const { logs: logsTools } = useContext(AppContext)
 	const [logs] = logsTools;
 
 	return (
 		<div className='progress_log'>
 			{
-				logs.map((log, ind) => <pre key={ind}>{log}</pre>)
+				logs.map((log, ind) =>
+					<div className='terminal-line' key={ind}>
+						{log}
+					</div>
+				)
 			}
 		</div>
 	);

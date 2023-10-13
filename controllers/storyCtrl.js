@@ -1,47 +1,52 @@
 import * as cheerio from 'cheerio';
 import axios from 'axios';
-import { httpMessages } from '../utils/helpers/errors';
 
 export const storyCtrl = {
 	getStoryData: async (req, res) => {
 		try {
             const { id } = req.params;
-            const url = `https://www.wattpad.com/story/${id}`
+            const url = `https://www.wattpad.com/api/v3/stories/${id}`
 
-			const { data } = await axios.get(url);
-            const dom = cheerio.load(data);
-
-			const coverImg = dom('div.story-header > div.story-cover > img').attr('src').trim();
-			const storyName = dom('div.story-header > div.story-info > span.sr-only').text().trim();
-			const [ reads, votes, parts ] = dom('.story-info > ul > li > .icon-container > div.tool-tip > span.sr-only')
-			.map((_, elem) => dom(elem).text().trim()).toArray();
-			const authorInfo = dom('div.story-header > div.story-info > div.author-info > div.author-info__username > a');
-			const authorUrl = authorInfo.attr('href').trim();
-			const authorName = authorInfo.text().trim();
-			const authorPfp = dom('div.story-header > div.story-info > div.author-info > img').attr('src').trim();
-			const status = dom('div.story-info-container > div.left-container > div.xxs-container-padding.badges > div.story-badges > div.icon.completed > div').text().trim();
-
-			const storyData = {
-				img: coverImg,
-				name: storyName,
-				stats: {
-					reads,
-					votes,
-					parts,
-					status
+			const { data }  = await axios.get(url, { 
+				headers: {
+					Accept: 'application/json, text/javascript'
 				},
-				author: {
-					name: authorName,
-					profile: {
-						url: `https://www.wattpad.com${authorUrl}`
-					},
-					pfp: {
-						url: authorPfp
-					}
+				params: {
+					fields: 'id,title,createDate,modifyDate,voteCount,readCount,language,user(name,username,avatar,location,highlight_color,backgroundUrl,numStoriesPublished,numFollowers),description,cover,completed,tags,rating,mature,parts'
 				}
-			};
+			});
 
-			res.json(storyData);
+			// const coverImg = dom('div.story-header > div.story-cover > img').attr('src').trim();
+			// const storyName = dom('div.story-header > div.story-info > span.sr-only').text().trim();
+			// const [ reads, votes, parts ] = dom('.story-info > ul > li > .icon-container > div.tool-tip > span.sr-only')
+			// .map((_, elem) => dom(elem).text().trim()).toArray();
+			// const authorInfo = dom('div.story-header > div.story-info > div.author-info > div.author-info__username > a');
+			// const authorUrl = authorInfo.attr('href').trim();
+			// const authorName = authorInfo.text().trim();
+			// const authorPfp = dom('div.story-header > div.story-info > div.author-info > img').attr('src').trim();
+			// const status = dom('div.story-info-container > div.left-container > div.xxs-container-padding.badges > div.story-badges > div.icon.completed > div').text().trim();
+
+			// const storyData = {
+			// 	img: coverImg,
+			// 	name: storyName,
+			// 	stats: {
+			// 		reads,
+			// 		votes,
+			// 		parts,
+			// 		status
+			// 	},
+			// 	author: {
+			// 		name: authorName,
+			// 		profile: {
+			// 			url: `https://www.wattpad.com${authorUrl}`
+			// 		},
+			// 		pfp: {
+			// 			url: authorPfp
+			// 		}
+			// 	}
+			// };
+
+			res.json(data);
 
 		} catch (err) {
 			console.log(err)

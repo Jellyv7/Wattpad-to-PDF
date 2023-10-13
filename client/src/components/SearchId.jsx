@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useLogs } from '../utils/hooks'
 
-const SearchId = ({ getData }) => {
+const getId = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0]
+
+const SearchId = ({ getData, setLoading }) => {;
 	const [storyId, setStoryId] = useState('');
 	const [ disabled, setDisabled ] = useState(false)
-	const logs = useLogs();
+	const { sendLogs: logs, clearLogs } = useLogs();
 
 	/** @param {React.ChangeEvent<HTMLInputElement>} e */
 	const onChange = e => {
@@ -21,14 +23,22 @@ const SearchId = ({ getData }) => {
 	const onClick = async () => {
 		if (!storyId.length) return;
 
+		const id = getId(storyId);
+
+		setStoryId(id);
+
+		clearLogs();
+		
 		setDisabled(true);
-		const res = await getData(storyId);
+		setLoading(true);
+		const res = await getData(id);
+		setLoading(false);
 		setDisabled(false);
 		const { data, success } = res;
 
-		logs(JSON.stringify(data, null, 4));
+		logs('Object', data);
 
-		if (success) logs('Success!')
+		if (success) logs('JSX', <span className='success'>Success!</span>)
 		
 	};
 
@@ -46,8 +56,8 @@ const SearchId = ({ getData }) => {
 					onKeyDown={checkInput}
 					disabled={disabled}
 				/>
-				<span className='field_placeholder'>Story ID</span>
-				<label htmlFor="id" className='field_label'>Story ID</label>
+				<span className='field_placeholder'>URL</span>
+				<label htmlFor="id" className='field_label'>URL</label>
 			</div>
 			<button
 				className = 'boton'

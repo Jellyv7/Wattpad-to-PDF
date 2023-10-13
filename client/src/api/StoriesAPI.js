@@ -3,8 +3,8 @@ import axios from "axios";
 import { useLogs } from "../utils/hooks";
 
 function StoriesAPI() {
-	const [ storyData, setStoryData ] = useState({});
-	const logs = useLogs();
+	const [ storyData, setStoryData ] = useState(null);
+	const { sendLogs: logs } = useLogs();
 
 	/**
 	 * 
@@ -13,9 +13,10 @@ function StoriesAPI() {
 	 */
 	const getData = async id => {
 		try {
-			logs('Fetching story id...');
+			logs('String', 'Fetching story id...');
 			const { data } = await axios.get(`/api/story/data/${id}`);
-			if (!data?.name) return;
+			console.log(data)
+			if (!data?.id) return;
 			setStoryData(data); 
 
 			return {

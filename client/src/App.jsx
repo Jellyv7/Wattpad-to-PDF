@@ -1,20 +1,20 @@
 import { createBrowserRouter, RouterProvider, useLocation, Outlet } from 'react-router-dom';
 import './assets/index.css';
 import Index from './pages/Index';
-import { StoriesProvider, LogsProvider } from './context';
+import { StoriesProvider, AppProvider } from './context';
 
 const AppLayout = () => {
 	const location = useLocation();
 	const { pathname } = location; 
 
 	return (
-		<LogsProvider>
+		<AppProvider>
 			<StoriesProvider>
-				<main className='app'>
-					<Outlet key={ pathname }/>
-				</main>
+					<main className='app'>
+						<Outlet key={ pathname }/>
+					</main>
 			</StoriesProvider>
-		</LogsProvider>
+		</AppProvider>
 	);
 };
 

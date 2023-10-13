@@ -1,28 +1,48 @@
 import React, { useContext } from 'react';
-import { LogsContext } from '../../context';
-
-const objectTypes = {
-	STRING: '[object String]',
-	NUMBER: '[object Number]', 
-	BOOLEAN: '[object Boolean]',
-	ARRAY: '[object Array]',
-	OBJECT: '[object Object]',
-	NULL: '[object Null]',
-	UNDEFINED: '[object Undefined]'
-};
-
-const checkLogType = type => Object.prototype.toString.call(type);
+import { AppContext } from '../../context';
+import LogLine from '../../components/LogLine';
 
 export const useLogs = () => {
-	const { logs } = useContext(LogsContext);
+	const { logs } = useContext(AppContext);
 	const [_, setLogs] = logs;
 
-	const sendLogs = (log) => {
-		if (checkLogType(log) === objectTypes.OBJECT) {
-			
+	/**
+	 * 
+	 * @param {'JSX' | 'String' | 'Number' | 'Boolean' | 'Array' | 'Object' | 'Null' | 'Undefined'} type 
+	 * @param {React.JSX.Element | string | number | boolean | array | {} | null | undefined} Data 
+	 */
+	const sendLogs = (type, Data) => {
+		if (type === 'Object') {
+			JSON.stringify(Data, null, '\u00A0').split('\n')
+				.map(line => line.replaceAll(',', '').replaceAll('":', '":\u00A0x').split('x '))
+				.forEach(line => sendLogs('JSX',
+					<>
+						{
+							line.map((d, ind) =>
+								ind === 1 && !['{', '}'].includes(d) ? 
+									<span className='value' key={ind}>{d}</span>
+								:
+									d
+							)
+						}
+					</>
+				));
+				return;
 		}
-		setLogs(logs => [...logs, log]);
-	}
 
-	return sendLogs;
+		if (type === 'String') return sendLogs('JSX', <>{Data}</>)
+		setLogs(logs => [...logs, <LogLine Data={Data} />]);
+	};
+	
+	/**
+	 * clear logs
+	 * @returns {void} 
+	 */
+	const clearLogs = () => setLogs([])
+
+	return {
+		sendLogs,
+		clearLogs
+	};
 };
+

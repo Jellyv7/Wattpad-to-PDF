@@ -231,6 +231,28 @@ body {
 	overflow: auto;
 }
 
+.app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line {
+	display: flex;
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 0.75em;
+	font-weight: 400;
+	letter-spacing: 0;
+	text-wrap: nowrap;
+	gap: 0.5rem;
+}
+
+.app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line > time {
+	opacity: .4;
+}
+
+.app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line .value {
+	color: var(--accent);
+}
+
+.app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line .success {
+	color: var(--accent2);
+}
+
 .app > div.status_parent {
 	display: flex;
 	align-items: center;
@@ -242,6 +264,7 @@ body {
 .app > div.status_parent > span.status  {
 	font-size: 0.8em;
 	opacity: 0.7;
+	padding: 0.5em;
 }
 
 .bg__block {
@@ -287,8 +310,8 @@ body {
 }
 
 .story_banner {
-	height: 100%;
-	background-color: white;
+	width: 119px;
+	height: 185px;
 	border-radius: 0.2em;
 	overflow: hidden;
 }

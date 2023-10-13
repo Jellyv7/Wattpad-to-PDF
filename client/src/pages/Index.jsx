@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import StoryDetails from '../components/StoryDetails';
 import Engine from '../components/Engine';
 import Popup from '../components/Popup';
 import Status from '../components/Status';
+import { AppContext } from '../context';
+import { LeapFrog } from '@uiball/loaders'
 
 const Home = () => {
+	const { loading: loadingTools } = useContext(AppContext);
+	const [ loading, setLoading ] = loadingTools;
 	const [expanded, setExpanded] = useState(true);
-	const status = 'Idle'
 
 	const togglePopup = () => setExpanded(!expanded);
 
@@ -23,11 +26,11 @@ const Home = () => {
 			<div className='row_top'>
 				<div className='base_left'>
 					<h1 className='title'>Wattpad to PDF</h1>
-					<Engine />
+					<Engine setLoading={setLoading} />
 				</div>
-				<StoryDetails />
+				<StoryDetails loading={loading}/>
 			</div>
-			<Status status={status} />
+				<Status loading={loading} />
 		</>
 	);
 };
