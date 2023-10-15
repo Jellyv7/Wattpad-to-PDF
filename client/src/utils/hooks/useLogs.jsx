@@ -14,15 +14,21 @@ export const useLogs = () => {
 	const sendLogs = (type, Data) => {
 		if (type === 'Object') {
 			JSON.stringify(Data, null, '\u00A0').split('\n')
-				.map(line => line.replaceAll(',', '').replaceAll('":', '":\u00A0x').split('x '))
+				.map(line =>
+					line
+					.replaceAll('\u00A0', '\u00A0\u00A0\u00A0')
+					.replaceAll(',', '')
+					.replaceAll('":', '":\u00A0x')
+					.split('x ')
+				)
 				.forEach(line => sendLogs('JSX',
 					<>
 						{
 							line.map((d, ind) =>
-								ind === 1 && !['{', '}'].includes(d) ? 
+								(d.includes('"') && !d.includes(':\u00A0')) || ['{', '}', '[', ']', ':\u00A0'].every(sym => !d.includes(sym)) ? 
 									<span className='value' key={ind}>{d}</span>
 								:
-									d
+									d	
 							)
 						}
 					</>

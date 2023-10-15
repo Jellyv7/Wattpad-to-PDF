@@ -50,11 +50,11 @@ const StoryDetails = ({loading}) => {
 						:
 							<Skeleton 
 								width = { 119 }
-								height = { 185 }
+								height = { 167 }
 								enableAnimation = { loading }
-								baseColor='#303237'
-								highlightColor='#45474d'
-								duration={1.3}
+								baseColor = '#303237'
+								highlightColor = '#45474d'
+								duration = { 1.3 }
 							/>
 					}
 				</div>

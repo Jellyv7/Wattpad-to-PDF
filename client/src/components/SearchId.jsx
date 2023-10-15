@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useLogs } from '../utils/hooks'
 
-const getId = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0]
+const getIdFromUrl = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0]
 
-const SearchId = ({ getData, setLoading }) => {;
+const SearchId = ({ getData, setLoading }) => {
+	;
 	const [storyId, setStoryId] = useState('');
-	const [ disabled, setDisabled ] = useState(false)
+	const [disabled, setDisabled] = useState(false)
 	const { sendLogs: logs, clearLogs } = useLogs();
 
 	/** @param {React.ChangeEvent<HTMLInputElement>} e */
@@ -23,12 +24,12 @@ const SearchId = ({ getData, setLoading }) => {;
 	const onClick = async () => {
 		if (!storyId.length) return;
 
-		const id = getId(storyId);
+		const id = !isNaN(storyId) ? storyId : getIdFromUrl(storyId);
 
 		setStoryId(id);
 
 		clearLogs();
-		
+
 		setDisabled(true);
 		setLoading(true);
 		const res = await getData(id);
@@ -36,10 +37,13 @@ const SearchId = ({ getData, setLoading }) => {;
 		setDisabled(false);
 		const { data, success } = res;
 
-		logs('Object', data);
+		if (success) logs('JSX',
+			<>
+				🎉 <span className='success'>Success!</span> Story info has been found.
+			</>
+		)
 
-		if (success) logs('JSX', <span className='success'>Success!</span>)
-		
+		logs('Object', data);
 	};
 
 	return (
@@ -60,11 +64,11 @@ const SearchId = ({ getData, setLoading }) => {;
 				<label htmlFor="id" className='field_label'>URL</label>
 			</div>
 			<button
-				className = 'boton'
-				onClick = { onClick }
-				disabled = { storyId.length === 0 || disabled }
+				className='boton'
+				onClick={onClick}
+				disabled={storyId.length === 0 || disabled}
 			>
-				Start
+				Search
 			</button>
 		</div>
 	);

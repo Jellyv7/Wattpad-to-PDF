@@ -1,12 +1,28 @@
 import React from 'react';
+import { motion } from "framer-motion"
 
-const Popup = ({ togglePopup, children }) => {
+const Popup = ({ children }) => {
 	return (
-		<div className='bg__block' onClick={togglePopup}>
-			<div className='popup' onClick={e => e.stopPropagation()}>
-				<p>{ children }</p>
-			</div>
-		</div>
+		<motion.div 
+			className='bg__block'
+			initial={{ opacity: 0 }} 
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			transition={{ duration: 0.2 }}
+			
+		>
+			<motion.div 
+				className='popup' 
+				initial={{ scale: 0 }} 
+				animate={{ scale: 1 }}
+				exit={{ scale: 0 }}
+				transition={{ duration: 0.2 }}
+			>
+				{ 
+					children 
+				}
+			</motion.div>
+		</motion.div>
 	);
 };
 

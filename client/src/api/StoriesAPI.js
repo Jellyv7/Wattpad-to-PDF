@@ -13,7 +13,7 @@ function StoriesAPI() {
 	 */
 	const getData = async id => {
 		try {
-			logs('String', 'Fetching story id...');
+			logs('String', '🔎 Searching story info...');
 			const { data } = await axios.get(`/api/story/data/${id}`);
 			console.log(data)
 			if (!data?.id) return;

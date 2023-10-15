@@ -6,8 +6,8 @@
 	"type": "module",
 	"node": ">=16",
 	"scripts": {
-		"start": "node --loader=./loader.js index",
-		"api": "nodemon --loader=./loader.js index --ignore client/**",
+		"start": "node --no-warnings --loader=./loader.js index",
+		"api": "nodemon --no-warnings --loader=./loader.js index --ignore client/**",
 		"client": "cd client && npm run dev",
 		"server-install": "npm install",
 		"client-install": "cd client && npm install",
