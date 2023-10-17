@@ -8,7 +8,8 @@ import 'react-loading-skeleton/dist/skeleton.css'
  * @returns 
  */
 const Details = ({ info, loading }) => {
-	// const { title, user: {name}, voteCount, parts, readCount, completed  } = info;
+	// const { title, user: {name}, voteCount, parts, readCount, completed  } = info;\\
+	//a
 
 	return (
 		<div className='story_details'>
