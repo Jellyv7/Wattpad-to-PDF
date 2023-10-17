@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useLogs } from '../utils/hooks'
+import { useLogs } from '../utils/hooks';
 
 const getIdFromUrl = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0]
 
-const SearchId = ({ getData, setLoading }) => {
-	;
+const SearchId = ({ getData, getParts, setLoading }) => {
 	const [storyId, setStoryId] = useState('');
 	const [disabled, setDisabled] = useState(false)
 	const { sendLogs: logs, clearLogs } = useLogs();
@@ -42,6 +41,9 @@ const SearchId = ({ getData, setLoading }) => {
 				🎉 <span className='success'>Success!</span> Story info has been found.
 			</>
 		)
+
+		const storyCaps = await getParts(id)
+		console.log(storyCaps)
 
 		logs('Object', data);
 	};
