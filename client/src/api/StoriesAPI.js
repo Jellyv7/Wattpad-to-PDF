@@ -32,15 +32,16 @@ function StoriesAPI() {
 		};
 	};
 
-	const getParts = async id => {
+	const getContent = async id => {
 		try {
 			logs('String', '🔎 Searching for story parts...')
-			const storieParts = await axios.get(`/api/story/content/${id}`);
-			console.log(storieParts)
-			setStoryParts(storieParts)
+			const storyContent = await axios.get(`/api/story/content/${id}`);
+			console.log(storyContent);
+			const { data } = storyContent
+			setStoryParts(data);
 			return {
-				success: true,
-				storieParts
+				state: true,
+				data
 			}
 		} catch (err) {
 			return {
@@ -54,7 +55,7 @@ function StoriesAPI() {
 		storyData,
 		storyParts,
 		getData,
-		getParts
+		getContent
 	}
 };
 

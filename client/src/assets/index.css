@@ -18,6 +18,8 @@
 	--accent2-variant: #00b2b271;
 	--white: #e7e7e7;
 	--white-darker: #e7e7e738;
+	--boolean-color: #57d6ec;
+	--number-color: #a36aff;
 	--scroll-size: 0.4em;
 }
 
@@ -246,8 +248,16 @@ body {
 	letter-spacing: 0;
 }
 
-.app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line .value {
+.app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line .string {
 	color: var(--accent);
+}
+
+.app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line .boolean {
+	color: var(--boolean-color);
+}
+
+.app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line .number {
+	color: var(--number-color);
 }
 
 .app > div.row_top > div.base_left > div.engine  > div.progress_log > .terminal-line .success {

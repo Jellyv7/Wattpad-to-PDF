@@ -3,7 +3,7 @@ import { useLogs } from '../utils/hooks';
 
 const getIdFromUrl = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0]
 
-const SearchId = ({ getData, getParts, setLoading }) => {
+const SearchId = ({ getData, getContent, setLoading }) => {
 	const [storyId, setStoryId] = useState('');
 	const [disabled, setDisabled] = useState(false)
 	const { sendLogs: logs, clearLogs } = useLogs();
@@ -42,8 +42,10 @@ const SearchId = ({ getData, getParts, setLoading }) => {
 			</>
 		)
 
-		const storyCaps = await getParts(id)
-		console.log(storyCaps)
+		const storyCaps = await getContent(id)
+		console.log(storyCaps);
+		const { data: dataCaps , success: successCaps } = storyCaps;
+		logs('Object', dataCaps);
 
 		logs('Object', data);
 	};

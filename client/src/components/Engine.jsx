@@ -5,11 +5,11 @@ import { StoriesContext } from '../context/stories';
 
 const Engine = ({setLoading}) => {
 	const { data } = useContext(StoriesContext);
-	const { getData } = data;
+	const { getData, getContent } = data;
 
 	return (
 		<div className='engine'>
-			<SearchId getData = { getData } setLoading={ setLoading } />
+			<SearchId getData = { getData } setLoading={ setLoading } getContent={ getContent } />
 			<Logs />
 		</div>
 	);

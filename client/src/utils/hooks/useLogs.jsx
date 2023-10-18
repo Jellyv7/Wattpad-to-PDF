@@ -2,6 +2,14 @@ import React, { useContext } from 'react';
 import { AppContext } from '../../context';
 import LogLine from '../../components/LogLine';
 
+const valueType = value => {
+	const validString = value.includes('"') && !value.includes(':\u00A0') ? 'string' : undefined;
+	const validBoolean = ['true', 'false'].some(bool => bool === value.replaceAll('\u00A0', '')) ? 'boolean' : undefined;
+	const validNumber = !isNaN(value.replaceAll('\u00A0', '')) ? 'number' : undefined;
+
+	return validString ?? validBoolean ?? validNumber;
+}
+
 export const useLogs = () => {
 	const { logs } = useContext(AppContext);
 	const [_, setLogs] = logs;
@@ -24,12 +32,13 @@ export const useLogs = () => {
 				.forEach(line => sendLogs('JSX',
 					<>
 						{
-							line.map((d, ind) =>
-								(d.includes('"') && !d.includes(':\u00A0')) || ['{', '}', '[', ']', ':\u00A0'].every(sym => !d.includes(sym)) ? 
-									<span className='value' key={ind}>{d}</span>
+							line.map((d, ind) => {
+								const value = valueType(d);
+								return value ? 
+									<span className={value} key={ind}>{d}</span>
 								:
 									d	
-							)
+							})
 						}
 					</>
 				));
