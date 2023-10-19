@@ -59,6 +59,16 @@ export const storyCtrl = {
 	},
     getStoryContent: async (req, res) => {
         try {
+			const userAgents = [
+				'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+				'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+				'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
+			];
+
             const { id } = req.params;
             const url = `https://www.wattpad.com/story/${id}`
             const regex = /^\/(\d+)-/;
@@ -73,15 +83,23 @@ export const storyCtrl = {
             const storyParts = [];
 
             for (let i = 0; i < partLink.length; i++) {
+				const ua = userAgents[Math.floor(Math.random() * userAgents.length)];
+				const headers = {
+					'User-Agent':  ua,
+				}
                 const partId = partLink[i];
-                const { data: { token } } = await axios.get(`https://api.wattpad.com/v4/parts/${partId}/token`);
+                const { data: { token } } = await axios.get(`https://api.wattpad.com/v4/parts/${partId}/token`, headers);
                 const textUrl = `https://t.wattpad.com/text-${id}-${partId}-?${token}`
                 updatedUrl.push(textUrl);
             };
 
             for (let i = 0; i < updatedUrl.length; i++) {
+				const ua = userAgents[Math.floor(Math.random() * userAgents.length)];
+				const headers = {
+					'User-Agent':  ua,
+				}
                const urlToFetch = updatedUrl[i];
-               const { data } = await axios.get(urlToFetch);
+               const { data } = await axios.get(urlToFetch, headers);
                storyParts.push(data);
             };
             

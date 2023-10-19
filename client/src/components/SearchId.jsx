@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useLogs } from '../utils/hooks';
+import htmlToPdfMake from 'html-to-pdfmake';
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 
 const getIdFromUrl = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0]
 
@@ -42,12 +45,59 @@ const SearchId = ({ getData, getContent, setLoading }) => {
 			</>
 		)
 
-		const storyCaps = await getContent(id)
-		console.log(storyCaps);
-		const { data: dataCaps , success: successCaps } = storyCaps;
-		logs('Object', dataCaps);
-
 		logs('Object', data);
+
+		const storyCaps = await getContent(id)
+		const { data: dataCaps , success: successCaps } = storyCaps;
+		logs('Boolean', successCaps);
+
+		const allCaps = [];
+
+		// const parser = new DOMParser();
+
+		// for (let i = 0; i < dataCaps.length; i++) {
+		// 	console.log('This doenst work', i)
+		// 	const parsedCap = dataCaps[i]
+		// 	parsedCaps.push(parsedCap)			
+		// };
+
+		for (let i = 0; i < dataCaps.length; i++) {
+			const html = `<h1>${data.parts[i].title}</h1><br>${dataCaps[i]}`;
+			
+			const doc = htmlToPdfMake(html, {
+				defaultStyles: {
+					h1: {
+						fontSize: 24,
+						italics: true,
+						bold: true,
+						alignment: 'center'
+					},
+					p: {
+						fontSize: 10,
+						alignment: 'justify'
+					}
+				}
+			});
+
+			const opt = {
+				ownerPassword: '12345',
+				permissions: {
+					modifying: false,
+					copying: false,
+					anotating: false
+				},
+				content: [doc],
+			}
+
+			console.log('works', i);
+
+			pdfMake.createPdf(opt).download(`${data.parts[i].title}.pdf`);
+
+			console.log('works', i);
+		}
+
+		logs('Object', dataCaps);
+		
 	};
 
 	return (
