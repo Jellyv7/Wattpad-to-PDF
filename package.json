@@ -25,6 +25,7 @@
     "dompurify": "^3.0.6",
     "express": "4.18.2",
     "html2canvas": "^1.4.1",
+    "jszip": "^3.10.1",
     "morgan": "1.10.0",
     "resolve": "1.22.8"
   }

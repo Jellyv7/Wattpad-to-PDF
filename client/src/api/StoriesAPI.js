@@ -34,10 +34,10 @@ function StoriesAPI() {
 
 	const getContent = async id => {
 		try {
-			logs('String', '🔎 Searching for story parts...')
-			const storyContent = await axios.get(`/api/story/content/${id}`);
+			const partsQuery = id.join(',');
+			const storyContent = await axios.get(`/api/story/content?parts=${partsQuery}`);
 			console.log(storyContent);
-			const { data } = storyContent
+			const { data } = storyContent;
 			setStoryParts(data);
 			return {
 				state: true,

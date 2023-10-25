@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import axios from 'axios';
+import JSZip from 'jszip';
 
 export const storyCtrl = {
 	getStoryData: async (req, res) => {
@@ -59,51 +60,129 @@ export const storyCtrl = {
 	},
     getStoryContent: async (req, res) => {
         try {
-			const userAgents = [
-				'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
-				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
-				'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-				'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
-				'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
-			];
 
-            const { id } = req.params;
-            const url = `https://www.wattpad.com/story/${id}`
-            const regex = /^\/(\d+)-/;
+			const { parts } = req.query;
 
-            const { data } = await axios.get(url);
-            const dom = cheerio.load(data);
-            const partLink = dom('div.table-of-contents.hidden-xxs > div.story-parts > ul > li > a').map((_, elem) => {
-                return dom(elem).prop('href').trim().match(regex)[1]
-            }).toArray();
+			const chapters = [];
 
-            const updatedUrl = [];
-            const storyParts = [];
+			const { data: storyZip } = await axios.get(`https://www.wattpad.com/apiv2/storytext?id=${parts}&output=zip`,{
+				responseType: 'arraybuffer'
+			});
 
-            for (let i = 0; i < partLink.length; i++) {
-				const ua = userAgents[Math.floor(Math.random() * userAgents.length)];
-				const headers = {
-					'User-Agent':  ua,
+			const storyFiles = await JSZip.loadAsync(storyZip);
+
+			const fileList = storyFiles.files;
+
+			for (const id in fileList) {
+				const currentFile = await fileList[id].async('text');
+				chapters.push(currentFile);
+			};
+
+			const imgToBase64 = async (src) => {
+				const response = await axios.get(src, {
+					responseType: 'arraybuffer'
+				});
+
+				return Buffer.from(response.data, 'binary').toString('base64')
+				// const reader = new FileReader();
+				// reader.readAsDataURL(imageBlob);
+			
+				// return new Promise(resolve => {
+				// 	reader.onload = e => {
+				// 		const { result } = e.target;
+				// 		resolve(result);
+				// 	};
+				// });
+			};
+
+			const replaceImgSrcWithBase64 = async (html) => {
+				const imgSrcRegex = /<img[^>]*src=['"]([^'"]+)['"][^>]*>/g;
+				const matches = html.match(imgSrcRegex);
+			  
+				if (matches) {
+				  for (const match of matches) {
+					const imgSrcMatch = /src=["'](https?:\/\/[^"']+)["']/;
+					const src = imgSrcMatch.exec(match)[1];
+					const base64Src = await imgToBase64(src);
+					html = html.replace(src, 'data:image/jpeg;base64,' + base64Src);
+				  }
 				}
-                const partId = partLink[i];
-                const { data: { token } } = await axios.get(`https://api.wattpad.com/v4/parts/${partId}/token`, headers);
-                const textUrl = `https://t.wattpad.com/text-${id}-${partId}-?${token}`
-                updatedUrl.push(textUrl);
-            };
+				return html;  
+			};
 
-            for (let i = 0; i < updatedUrl.length; i++) {
-				const ua = userAgents[Math.floor(Math.random() * userAgents.length)];
-				const headers = {
-					'User-Agent':  ua,
-				}
-               const urlToFetch = updatedUrl[i];
-               const { data } = await axios.get(urlToFetch, headers);
-               storyParts.push(data);
-            };
+			for (let i = 0; i < chapters.length; i++) {
+				const replacedChapters = await replaceImgSrcWithBase64(chapters[i])
+				chapters[i] = replacedChapters;
+			}
+		
+			//   const processChapters = async (dataCaps) => {
+			// 	return Promise.all(dataCaps.map(async chapter => {
+			// 		return await replaceImgSrcWithBase64(chapter);
+			// 	}));
+			//   }
+
+			// processChapters(chapters)  
+
+			// console.log(chapters[0])
+
+
+			// storyFiles.forEach(async (name,file) => {
+			// 	const part = await file.async('text');
+			// 	console.log(part);
+			// 	chapters.push(part);
+			// });
+
+			res.send(chapters);
+
+			// const userAgents = [
+			// 	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+			// 	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+			// 	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+			// 	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+			// 	'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+			// 	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
+			// 	'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
+			// ];
+
+            // const { id } = req.params;
+            // const url = `https://www.wattpad.com/story/${id}`
+            // const regex = /^\/(\d+)-/;
+
+            // const { data } = await axios.get(url);
+            // const dom = cheerio.load(data);
+            // const partLink = dom('div.table-of-contents.hidden-xxs > div.story-parts > ul > li > a').map((_, elem) => {
+            //     return dom(elem).prop('href').trim().match(regex)[1]
+            // }).toArray();
+
+            // const updatedUrl = [];
+            // const storyParts = [];
+
+			// const limit = partLink.length > 10 ? 10 : partLink.length
+			// console.log(limit)
+
+            // for (let i = 0; i < partLink.length; i++) {
+			// 	console.log('works', i)
+			// 	const ua = userAgents[Math.floor(Math.random() * userAgents.length)];
+			// 	const headers = {
+			// 		'User-Agent':  ua,
+			// 	}
+            //     const partId = partLink[i];
+            //     const { data: { token } } = await axios.get(`https://api.wattpad.com/v4/parts/${partId}/token`, headers);
+            //     const textUrl = `https://t.wattpad.com/text-${id}-${partId}-?${token}`
+            //     updatedUrl.push(textUrl);
+            // };
+
+            // for (let i = 0; i < updatedUrl.length; i++) {
+			// 	const ua = userAgents[Math.floor(Math.random() * userAgents.length)];
+			// 	const headers = {
+			// 		'User-Agent':  ua,
+			// 	}
+            //    const urlToFetch = updatedUrl[i];
+            //    const { data } = await axios.get(urlToFetch, headers);
+            //    storyParts.push(data);
+            // };
             
-            res.send(storyParts);
+            
         } catch (err) {
 			console.log(err)
             // return res.status(500).json({
