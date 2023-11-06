@@ -24,9 +24,12 @@
     "cors": "2.8.5",
     "dompurify": "^3.0.6",
     "express": "4.18.2",
+    "html-to-pdfmake": "^2.5.1",
     "html2canvas": "^1.4.1",
+    "jsdom": "^22.1.0",
     "jszip": "^3.10.1",
     "morgan": "1.10.0",
+    "pdfmake": "^0.2.7",
     "resolve": "1.22.8"
   }
 }

@@ -16,8 +16,9 @@ function StoriesAPI() {
 		try {
 			logs('String', '🔎 Searching story info...');
 			const { data } = await axios.get(`/api/story/data/${id}`);
-			console.log(data)
+
 			if (!data?.id) return;
+			
 			setStoryData(data);
 
 			return {
@@ -32,13 +33,28 @@ function StoriesAPI() {
 		};
 	};
 
-	const getContent = async id => {
+	const getContent = async (id) => {
 		try {
+
+			// const { title, user: {name:authorName}, user: {username}, language: {name:language}, parts, cover } = storyData;
+
+			// const newData = {
+			// 	title,
+			// 	authorName,
+			// 	username,
+			// 	language, 
+			// 	parts: parts.map(part => part.title),
+			// 	cover,
+			// };
+
 			const partsQuery = id.join(',');
+			// const dataQuery = JSON.stringify(newData);
 			const storyContent = await axios.get(`/api/story/content?parts=${partsQuery}`);
-			console.log(storyContent);
+
 			const { data } = storyContent;
+
 			setStoryParts(data);
+			
 			return {
 				state: true,
 				data
