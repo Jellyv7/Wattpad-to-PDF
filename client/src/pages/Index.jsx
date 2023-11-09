@@ -8,8 +8,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useLocalStorage } from '../utils/hooks/useLocalStorage';
 
 const Home = () => {
-	const { loading: loadingTools } = useContext(AppContext);
+	const { loading: loadingTools, statusLoading: loadingStatusTools } = useContext(AppContext);
 	const [loading, setLoading] = loadingTools;
+	const [ statusLoading, setStatusLoading ] = loadingStatusTools;
 	const [expanded, setExpanded] = useState(false);
 	const [popup, setPopup] = useLocalStorage('acceptTerms', false);
 
@@ -72,11 +73,11 @@ const Home = () => {
 			<div className='row_top'>
 				<div className='base_left'>
 					<h1 className='title'>Wattpad to PDF</h1>
-					<Engine setLoading={setLoading} />
+					<Engine setLoading={setLoading} setStatusLoading={setStatusLoading} />
 				</div>
 				<StoryDetails loading={loading} />
 			</div>
-			<Status loading={loading} />
+			<Status loading={statusLoading} />
 		</>
 	);
 };

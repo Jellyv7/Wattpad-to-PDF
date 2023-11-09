@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { useLogs } from '../utils/hooks';
-import { usePDF, Document, Page, Text, StyleSheet, Image } from '@react-pdf/renderer';
+import { usePDF, Document, Page, Text, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { useEffect } from 'react';
+import { characters } from '../utils'
 // import pdfmake from "pdfmake/build/pdfmake";
 // import pdfFonts from "pdfmake/build/vfs_fonts";
 // import htmlToPdfMake from 'html-to-pdfmake';
 
-
-
 const getIdFromUrl = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0]
 
-const SearchId = ({ getData, getContent, setLoading }) => {
+const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 	const InitialDocument = (<Document><Page><Text>Initial PDF</Text></Page></Document>);
 	const [instance, updateInstance] = usePDF({document: InitialDocument});
 	const [fetched, setFetched] = useState(false);
@@ -31,6 +30,10 @@ const SearchId = ({ getData, getContent, setLoading }) => {
 		if (isNaN(Number(e.key)) && e.key !== 'Backspace' && e.key !== 'Tab') return e.preventDefault();
 	};
 
+	// const normalizeText = (text) => {
+	// 	return text.normalize('NFKC')
+	// }
+
 	const onClick = async () => {
 		if (!storyId.length) return;
 
@@ -42,9 +45,11 @@ const SearchId = ({ getData, getContent, setLoading }) => {
 
 		setDisabled(true);
 		setLoading(true);
+		setStatusLoading(true);
 		const res = await getData(id);
 		setDisabled(false);
 		const { data, success } = res;
+		setLoading(false);
 
 		if (success) logs('JSX',
 			<>
@@ -61,13 +66,37 @@ const SearchId = ({ getData, getContent, setLoading }) => {
 			return [...dom.body.children];
 		});
 
-		console.log(storyParts[0]);
+		// const transformUnicodeToText = input => {
+		// 	const output = [];
+		// 	for (const char of input) {
+		// 		if (characters[char]) {
+		// 			output.push(characters[char]);
+		// 		} else {
+		// 			output.push(char);
+		// 		}
+		// 	}
+		// 	return output.join('');
+		// }
+
+		const transformUnicodeToText = input => {
+			const output = [];
+			for (const char of input) {
+			  if (characters.has(char)) {
+				output.push(characters.get(char));
+			  } else {
+				output.push(char);
+			  }
+			}
+			return output.join('');
+		  };
+
+		const normalizedTitle = transformUnicodeToText(data.title)
 
 		const styles = StyleSheet.create({
 			body: {
 				paddingTop: 35,
 				paddingBottom: 65,
-				paddingHorizontal: 35,
+				paddingHorizontal: 35
 			  },
 			text: {
 				fontSize: 12,
@@ -77,35 +106,57 @@ const SearchId = ({ getData, getContent, setLoading }) => {
 			title: {
 				fontSize: 24,
 				textAlign: 'center',
-				margin: 20
+				marginBottom: 20
+			  },
+			  subtitle: {
+				fontSize: 15,
+				textAlign: 'center',
+				marginBottom: 20,
+				opacity: 0.8
+			  },
+			  img: {
+				display: 'flex',
+				alignSelf: 'center',
+				width: 300,
 			  }
 		});
 
 		const Story = (
 			<Document>
+				<Page>
+					<Text style={styles.title}>
+						{normalizedTitle}
+					</Text>
+					<Text style={styles.subtitle}>
+						Story by: {data.user.name}
+					</Text>
+					<Image src={data.cover} style={styles.img} />
+				</Page>
+
 				{
 					storyParts.map((part, ind) => {
 						return (
-							<Page style={styles.body}>
-								<Text style={styles.title}>
-									{data.parts[ind].title}
-								</Text>
-								{
-									part.map(p => {
+							<>
+								<Page style={styles.body}>
+									<Text style={styles.title}>
+										{transformUnicodeToText(data.parts[ind].title)}
+									</Text>
+									{
+										part.map(p => {
 
-										const tagNames = ['IMG']
-										console.log(p)
+											const tagNames = ['IMG']
 
-										return (
-											<>
-												{
-													tagNames.includes(p.children[0]?.tagName) ? <Image src={p.children[0].src} /> : <Text style={styles.text}>{p.innerText}</Text>
-												}
-											</>
-										)
-									})
-								}
-							</Page>
+											return (
+												<>
+													{
+														tagNames.includes(p.children[0]?.tagName) ? <Image src={p.children[0].src} /> : <Text style={styles.text}>{p.innerText}</Text>
+													}
+												</>
+											)
+										})
+									}
+								</Page>
+							</>
 						)
 					})
 				}
@@ -228,7 +279,7 @@ const SearchId = ({ getData, getContent, setLoading }) => {
 		// pdfmake.createPdf(opt).download(`${data.title}.pdf`);
 
 		logs('Object', data);
-		setLoading(false);
+		setStatusLoading(false);
 	};
 
 	useEffect(() => {
@@ -241,7 +292,7 @@ const SearchId = ({ getData, getContent, setLoading }) => {
 			console.log('work')
 			const aDownload = document.createElement('a')
 			aDownload.href = instance.url
-			aDownload.download = `A.pdf`;
+			aDownload.download = `a.pdf`;
 			aDownload.click()
 		}
 	}, [fetched, instance.loading, instance.error])

@@ -34,8 +34,6 @@ import 'react-loading-skeleton/dist/skeleton.css'
 // 	"parts": []
 //   }
 
-
-
 const StoryDetails = ({loading}) => {
 	const { data } = useContext(StoriesContext);
 	const { storyData } = data;

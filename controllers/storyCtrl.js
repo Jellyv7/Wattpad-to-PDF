@@ -109,7 +109,7 @@ export const storyCtrl = {
 
 					const base64Img = await imgToBase64(src);
 
-					html = html.replace(src, `data:image/png;base64, ${base64Img}`);
+					html = html.replace(src, `data:image/png/jpg/jpeg;base64, ${base64Img}`);
 				  };
 				};
 				return html;  
