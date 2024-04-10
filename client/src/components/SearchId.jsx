@@ -1,27 +1,32 @@
-import React, { useState } from 'react';
+import React, { useReducer } from 'react';
 import { useLogs } from '../utils/hooks';
 import { usePDF, Document, Page, Text, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { useEffect } from 'react';
-import { characters } from '../utils'
-// import pdfmake from "pdfmake/build/pdfmake";
-// import pdfFonts from "pdfmake/build/vfs_fonts";
-// import htmlToPdfMake from 'html-to-pdfmake';
+import NotoJelly from '../assets/fonts/NotoJelly-Regular.ttf';
+import NotoJellyItalic from '../assets/fonts/NotoJelly-Italic.ttf';
+import NotoJellyBold from '../assets/fonts/NotoJelly-Bold.ttf';
+import NotoJellyBoldItalic from '../assets/fonts/NotoJelly-BoldItalic.ttf';
 
-const getIdFromUrl = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0]
+const getIdFromUrl = url => url.split('https://www.wattpad.com/story/')[1].split('-')[0];
+
+const reducer = (current, update) => ({...current, ...update});
 
 const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 	const InitialDocument = (<Document><Page><Text>Initial PDF</Text></Page></Document>);
 	const [instance, updateInstance] = usePDF({document: InitialDocument});
-	const [fetched, setFetched] = useState(false);
-	const [storyId, setStoryId] = useState('');
-	const [disabled, setDisabled] = useState(false)
+	const [storyState, setStoryState] = useReducer(reducer, {
+		fetched: false,
+		storyId: '',
+		disabled: false,
+		storyData: null
+	});
 	const { sendLogs: logs, clearLogs } = useLogs();
 	const parser = new DOMParser();
 
 	/** @param {React.ChangeEvent<HTMLInputElement>} e */
 	const onChange = e => {
 		const { value } = e.currentTarget;
-		setStoryId(value);
+		setStoryState({storyId: value});
 	};
 
 	/** @param {React.KeyboardEvent<HTMLInputElement>} e */
@@ -30,67 +35,75 @@ const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 		if (isNaN(Number(e.key)) && e.key !== 'Backspace' && e.key !== 'Tab') return e.preventDefault();
 	};
 
-	// const normalizeText = (text) => {
-	// 	return text.normalize('NFKC')
-	// }
+	const normalizeText = (text) => {
+		return text.normalize('NFKD')
+	};
 
 	const onClick = async () => {
-		if (!storyId.length) return;
+		if (!storyState.storyId.length) return;
 
-		const id = !isNaN(storyId) ? storyId : getIdFromUrl(storyId);
+		const id = !isNaN(storyState.storyId) ? storyState.storyId : getIdFromUrl(storyState.storyId);
 
-		setStoryId(id);
+		setStoryState({storyId: id});
 
 		clearLogs();
 
-		setDisabled(true);
+		setStoryState({disabled: true});
 		setLoading(true);
 		setStatusLoading(true);
 		const res = await getData(id);
-		setDisabled(false);
+		setStoryState({disabled: false});
 		const { data, success } = res;
+		setStoryState({storyData: data})
 		setLoading(false);
+
+		const storyTitle = data.title;
 
 		if (success) logs('JSX',
 			<>
 				🎉 <span className='success'>Success!</span> Story info has been found.
 			</>
-		)
+		);
 
-		const partsId = data?.parts.map(p => p.id)
+		logs('String', '🔎 Searching for story parts...');
 
-		const { state, data: storyContent } = await getContent(partsId)
+		const partsId = data?.parts.map(p => p.id);
+
+		const { state, data: storyContent } = await getContent(partsId);
+
+		if (state) logs('JSX',
+		<>
+			🎉 <span className='success'>Success!</span> Story chapters has been found.
+		</>
+	);
 
 		const storyParts = storyContent.map(part => {
 			const dom = parser.parseFromString(part, 'text/html');
 			return [...dom.body.children];
 		});
 
-		// const transformUnicodeToText = input => {
-		// 	const output = [];
-		// 	for (const char of input) {
-		// 		if (characters[char]) {
-		// 			output.push(characters[char]);
-		// 		} else {
-		// 			output.push(char);
-		// 		}
-		// 	}
-		// 	return output.join('');
-		// }
-
-		const transformUnicodeToText = input => {
-			const output = [];
-			for (const char of input) {
-			  if (characters.has(char)) {
-				output.push(characters.get(char));
-			  } else {
-				output.push(char);
-			  }
-			}
-			return output.join('');
-		  };
-
-		const normalizedTitle = transformUnicodeToText(data.title)
+		Font.register({
+			family: 'Noto Jelly',
+			fonts: [
+				{
+					src: NotoJelly
+				},
+				{
+					src: NotoJellyItalic,
+					fontWeight: 'normal',
+					fontStyle: 'italic'
+				},
+				{
+					src: NotoJellyBold,
+					fontWeight: 'bold'
+				},
+				{
+					src: NotoJellyBoldItalic,
+					fontWeight: 'bold',
+					fontStyle: 'italic'
+				}
+			]
+		})
 
 		const styles = StyleSheet.create({
 			body: {
@@ -99,16 +112,21 @@ const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 				paddingHorizontal: 35
 			  },
 			text: {
+				fontFamily: 'Noto Jelly',
 				fontSize: 12,
 				textAlign: 'justify',
 				margin: 7
 			},
 			title: {
+				fontFamily: 'Noto Jelly',
 				fontSize: 24,
+				fontWeight: 'bold',
 				textAlign: 'center',
-				marginBottom: 20
+				marginBottom: 15,
+				marginTop: 15
 			  },
 			  subtitle: {
+				fontFamily: 'Noto Jelly',
 				fontSize: 15,
 				textAlign: 'center',
 				marginBottom: 20,
@@ -118,8 +136,17 @@ const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 				display: 'flex',
 				alignSelf: 'center',
 				width: 300,
+				margin: 10
+			  },
+			  imgBody: {
+				display: 'flex',
+				alignSelf: 'center',
+				margin: 15,
+				width: '100%'
 			  }
 		});
+
+		const normalizedTitle = normalizeText(storyTitle);
 
 		const Story = (
 			<Document>
@@ -139,7 +166,7 @@ const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 							<>
 								<Page style={styles.body}>
 									<Text style={styles.title}>
-										{transformUnicodeToText(data.parts[ind].title)}
+										{normalizeText(data.parts[ind].title)}
 									</Text>
 									{
 										part.map(p => {
@@ -149,7 +176,7 @@ const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 											return (
 												<>
 													{
-														tagNames.includes(p.children[0]?.tagName) ? <Image src={p.children[0].src} /> : <Text style={styles.text}>{p.innerText}</Text>
+														tagNames.includes(p.children[0]?.tagName) ? <Image src={p.children[0].src} style={styles.imgBody}/> : <Text style={styles.text}>{p.innerText}</Text>
 													}
 												</>
 											)
@@ -160,156 +187,50 @@ const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 						)
 					})
 				}
-
-				{/* <Page size="A4" style={styles.page}>
-					<View style={styles.section}>
-					<Text>Section #1</Text>
-					</View>
-					<View style={styles.section}>
-					<Text>Section #2</Text>
-					</View>
-				</Page> */}
 			</Document>
 		);
 
 		updateInstance(Story);
-		setFetched(true);
+		setStoryState({fetched: true});
 
-		// logs('String', '🔎 Searching for story parts...')
-
-		// const storyCaps = await getContent(partsId, data)
-		// const { data: dataCaps, state: successCaps } = storyCaps;
-
-		// if (successCaps) logs('JSX',
-		// 	<>
-		// 		🎉 <span className='success'>Success!</span> Story chapters has been found.
-		// 	</>
-		// );
-		
-		// const imgToBase64 = async (src) => {
-		// 	const response = await fetch(src);
-		// 	const imageBlob = await response.blob();
-		// 	const reader = new FileReader();
-		// 	reader.readAsDataURL(imageBlob);
-		
-		// 	return new Promise(resolve => {
-		// 		reader.onload = e => {
-		// 			const { result } = e.target;
-		// 			resolve(result);
-		// 		};
-		// 	});
-		// };
-		
-		// const coverBase64 = await imgToBase64(data.cover);
-
-		// const regex = /<img[^>]*src=['"]([^'"]+)['"][^>]*>/g;
-
-		// for (let i = 0; i < dataCaps.length; i++) {
-		// 	dataCaps[i].replace(regex, async (match, src) => {
-		// 		const base64Src = await imgToBase64(match);
-		// 		return src.replace(match, base64Src);
-		// 	})
-
-		// 	console.log(dataCaps[1]);
-		// };
-
-		// const replaceImgSrcWithBase64 = async (html) => {
-		// 	const imgSrcRegex = /<img[^>]*src=['"]([^'"]+)['"][^>]*>/g;
-		// 	const matches = html.match(imgSrcRegex);
-
-		// 	if (matches) {
-		// 		for (const match of matches) {
-		// 			const imgSrcMatch = /<img[^>]*src=['"]([^'"]+)['"][^>]*>/g;
-		// 			const src = imgSrcMatch.exec(match)[1];
-		// 			console.log(src)
-		// 			const base64Src = await imgToBase64(src);
-		// 			console.log(base64Src)
-		// 			html = html.replace(src, base64Src);
-		// 			// console.log(html)
-		// 		}
-		// 		return html;
-		// 	}
-		// }
-
-		// const processChapters = async (dataCaps) => {
-		// 	return Promise.all(dataCaps.map(async (chapter) => {
-		// 		return await replaceImgSrcWithBase64(chapter);
-		// 	}));
-		// }
-
-		// processChapters(dataCaps);
-
-		// const html = `
-		// 	<div>
-		// 		<h1>${ data?.title }</h1>
-		// 		<span>Story by: ${ data?.user.name }</span>
-		// 		<span>Username: ${ data?.user.username }</span>
-		// 		<span>Language: ${ data?.language.name }</span>
-		// 		<img src=${ data.cover } styles="width: 20"'>
-		// 		<span>ORIGINAL FROM WATTPAD</span>
-		// 	</div>
-		// 	${
-		// 		dataCaps.map((part, ind) => `
-		// 			<h1 class='pdf-pagebreak-before'>${ data?.parts[ind].title }</h1>
-		// 			<span>Story by: ${ data?.user.name }<span/>
-		// 			${ part }
-		// 		`
-		// 		).join('')
-		// 	}
-		// `;
-
-		// const doc = htmlToPdfMake(html, {
-		// 	imagesByReference: true,
-		// 	window: window
-		// });
-
-		// console.log(doc)
-
-		// const opt = {
-		// 	ownerPassword: '12345',
-		// 	permissions: {
-		// 		modifying: false,
-		// 		copying: false,
-		// 		anotating: false
-		// 	},
-		// 	pageBreakBefore: currentNode => currentNode.style && currentNode.style.indexOf('pdf-pagebreak-before') > -1,
-		// 	...doc
-		// };
-
-		// pdfmake.createPdf(opt).download(`${data.title}.pdf`);
-
+		logs('String', '👷‍♀️ Generating PDF...');
 		logs('Object', data);
-		setStatusLoading(false);
 	};
 
 	useEffect(() => {
-		console.log([fetched, instance.loading, instance.error])
+		console.log([storyState.fetched, instance.loading, instance.error])
 		if (instance.loading) return console.log(`loading: ${instance.loading}`);
 		
 		if (instance.error) return console.log(`error: ${instance.error}`);
 
-		if (fetched) {
+		if (storyState.fetched) {
 			console.log('work')
-			const aDownload = document.createElement('a')
-			aDownload.href = instance.url
-			aDownload.download = `a.pdf`;
-			aDownload.click()
+			const aDownload = document.createElement('a');
+			aDownload.href = instance.url;
+			aDownload.download = `${normalizeText(storyState.storyData.title)}.pdf`;
+			aDownload.click();
+			setStatusLoading(false);
+			logs('JSX', 
+				<>
+					🎉 <span className='success'>Success!</span> PDF generated!
+				</>
+			);
 		}
-	}, [fetched, instance.loading, instance.error])
+	}, [storyState.fetched, instance.loading, instance.error])
 	
 	return (
-		<div className={`input_id ${disabled ? 'disabled' : ''}`}>
+		<div className={`input_id ${storyState.disabled ? 'disabled' : ''}`}>
 			<div className='input_container'>
 				<input
 					type="text"
 					name='id'
 					id='id'
-					value={storyId}
-					className={`story_id ${storyId.length ? 'filled' : ''}`}
+					value={storyState.storyId}
+					className={`story_id ${storyState.storyId.length ? 'filled' : ''}`}
 					spellCheck={false}
 					onChange={onChange}
 					onKeyDown={checkInput}
-					disabled={disabled}
+					disabled={storyState.disabled}
 				/>
 				<span className='field_placeholder'>URL</span>
 				<label htmlFor="id" className='field_label'>URL</label>
@@ -317,7 +238,7 @@ const SearchId = ({ getData, getContent, setLoading, setStatusLoading }) => {
 			<button
 				className='boton'
 				onClick={onClick}
-				disabled={storyId.length === 0 || disabled}
+				disabled={storyState.storyId.length === 0 || storyState.disabled}
 			>
 				Search
 			</button>
